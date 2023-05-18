@@ -1,0 +1,27 @@
+{
+  "name": "hana-five-slackapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hana-five-front/hana-five-slackapi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hana-five-front/hana-five-slackapi/issues"
+  },
+  "homepage": "https://github.com/hana-five-front/hana-five-slackapi#readme",
+  "dependencies": {
+    "@slack/web-api": "^6.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0"
+  }
+}
