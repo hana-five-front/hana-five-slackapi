@@ -13,7 +13,7 @@ app.use(express.json());
 
 // WebClient 인스턴스 생성
 const slackClient = new WebClient(process.env.SLACK_TOKEN);
-
+console.log(slackClient,"slack")
 // Slack에 메시지 보내는 함수
 async function sendMessageToSlack(text) {
   try {
