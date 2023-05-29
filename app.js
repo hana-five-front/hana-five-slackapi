@@ -13,7 +13,6 @@ app.use(express.json());
 
 // WebClient 인스턴스 생성
 const slackClient = new WebClient(process.env.SLACK_TOKEN);
-console.log(slackClient,"slack")
 // Slack에 메시지 보내는 함수
 async function sendMessageToSlack(text) {
   try {
@@ -51,12 +50,11 @@ app.post('/qna', (req, res) => {
   const text = req.body.text;
   sendQnaMessageToSlack(text);
 });
-
-app.get('/slackapi', (req, res) => {
+app.get('/qna', (req,res) => {
   const slackToken = process.env.SLACK_TOKEN;
   const client = new WebClient(slackToken);
   // 대화 내역을 가져오기 위해 API 요청을 만듭니다.
-  const channel = process.env.CHANNEL;
+  const channel = process.env.QNA_CHANNEL;
 
   async function getUserName(userId) {
     try {
@@ -88,6 +86,69 @@ app.get('/slackapi', (req, res) => {
       console.error(error);
     }
   }
+  getConversationHistory()
+    .then(response => {
+      console.log(response)
+      res.status(200).json(response);
+    })
+    .catch(error => {
+      console.log(error);
+    });
+})
+app.get('/slackapi', (req, res) => {
+  const slackToken = process.env.SLACK_TOKEN;
+  const client = new WebClient(slackToken);
+  // 대화 내역을 가져오기 위해 API 요청을 만듭니다.
+  const channel = process.env.CHANNEL;
+
+  async function getUserName(userId) {
+    try {
+      const userInfo = await client.users.info({ user: userId });
+      return userInfo.user.real_name;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
+  async function getConversationHistory() {
+    try {
+      const limit = 10; // 가져올 메시지의 수 제한
+      let data = [];
+  
+      let hasMore = true;
+      let cursor = undefined;
+  
+      while (hasMore) {
+        const response = await client.conversations.history({
+          channel,
+          limit,
+          cursor,
+        });
+  
+        const messages = response.messages;
+  
+        for (const message of messages) {
+          let name = await getUserName(message.user);
+          name = name == 'Demo App' ? '' : name;
+  
+          const date = new Date(message.ts * 1000);
+          const lines = message.text.split('\n');
+          const title = lines[0];
+          const content = lines.slice(1);
+  
+          data.push({ name, date, title, content });
+        }
+  
+        hasMore = response.has_more;
+        cursor = response.response_metadata.next_cursor;
+      }
+  
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
   getConversationHistory()
     .then(response => {
       res.status(200).json(response);
