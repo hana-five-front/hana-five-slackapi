@@ -95,6 +95,9 @@ app.get('/qna', (req,res) => {
       console.log(error);
     });
 })
+app.get('/header',(req,res)=> res.status(200).json({"header":process.env.HEADER}))
+
+
 app.get('/slackapi', (req, res) => {
   const slackToken = process.env.SLACK_TOKEN;
   const client = new WebClient(slackToken);
