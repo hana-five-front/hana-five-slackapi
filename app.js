@@ -67,10 +67,13 @@ async function getConversationHistory() {
 app.get('/slackapi', async (req, res) => {
   await connectToRedis()
     .then( async () => {
-      const client = redis.createClient({
-        host: 'localhost',
-        port: 6379,
-      });
+      const client = createClient({
+        password: process.env.REDIS_PASSWORD,
+        socket: {
+            host: process.env.REDIS_HOST,
+            port: 16537
+        }
+    });
       let response = await client.connect().then(async()=>{
         return await client.get('slackApi') 
       })
@@ -84,26 +87,32 @@ app.get('/slackapi', async (req, res) => {
 });
 async function connectToRedis() {
 
-  const client = redis.createClient({
-    host: 'localhost',
-    port: 6379,
-  });
-  setInterval(async()=>{
-    await client.connect().then(
-      async() => {
-        const isCachedSlackApi = await client.get("slackApi")
-  
-        if (isCachedSlackApi == null) {
-             const slackApiNoticeData = await getConversationHistory()
-             await addArrayOfObjectsToRedis("slackApi",slackApiNoticeData)
-        }
-        return
-      }
-    )
-    console.log(await client.get("slackApi"))
-    // Redis 클라이언트 연결 종료
-    client.quit();
-  },3600000)
+  const client = createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: 16537
+    }
+});
+let connected = false; // 연결 여부를 확인하는 플래그 변수
+
+setInterval(async () => {
+  if (!connected) {
+    try {
+      await client.connect();
+      connected = true;
+      const slackApiNoticeData = await getConversationHistory();
+      console.log(slackApiNoticeData);
+      await addArrayOfObjectsToRedis("slackApi", slackApiNoticeData);
+      console.log(await client.get("slackApi"));
+    } catch (error) {
+      console.error("Error connecting to Redis:", error);
+    } finally {
+      client.quit();
+      connected = false;
+    }
+  }
+}, 30000);
   
   async function addArrayOfObjectsToRedis(key, arrayOfObjects) {
     const serializedArray = JSON.stringify(arrayOfObjects);
