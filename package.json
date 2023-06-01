@@ -18,14 +18,20 @@
   },
   "homepage": "https://github.com/hana-five-front/hana-five-slackapi#readme",
   "dependencies": {
+    "@slack/bolt": "^3.13.1",
     "@slack/web-api": "^6.8.1",
     "connect-redis": "^7.1.0",
+    "cores": "^0.8.5",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "http": "^0.0.1-security",
     "ioredis": "^5.3.2",
     "morgan": "^1.10.0",
     "node-cache": "^5.1.2",
-    "redis": "^4.6.6"
+    "redis": "^4.6.6",
+    "redis-connection-pool": "^4.0.1",
+    "socket.io": "^4.6.2",
+    "ws": "^8.13.0"
   }
 }

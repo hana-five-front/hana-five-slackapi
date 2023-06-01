@@ -64,25 +64,22 @@ async function getConversationHistory() {
   }
 }
 app.get('/slackapi', async (req, res) => {
-  await connectToRedis()
-    .then(async () => {
-      const client = createClient({
-        password: process.env.REDIS_PASSWORD,
-        socket: {
-          host: process.env.REDIS_HOST,
-          port: 10536,
-        },
-      });
-      let response = await client.connect().then(async () => {
-        return await client.get('slackApi');
-      });
-      await client.quit();
-      res.status(200).json(response);
-    })
-    .catch(error => {
-      console.log(error);
+  try{
+    const client = createClient({
+      password: process.env.REDIS_PASSWORD,
+      socket: {
+        host: process.env.REDIS_HOST,
+        port: 10536,
+      },
     });
-});
+    let response = await client.connect().then(async () => {
+      return await client.get('slackApi');
+    });
+    await client.quit();
+    res.status(200).json(response);
+  } catch(error){
+      console.log(error);
+ }});
 async function connectToRedis() {
   const client = createClient({
     password: process.env.REDIS_PASSWORD,
