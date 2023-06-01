@@ -112,7 +112,7 @@ setInterval(async () => {
       connected = false;
     }
   }
-}, 30000);
+}, 3600000);
   
   async function addArrayOfObjectsToRedis(key, arrayOfObjects) {
     const serializedArray = JSON.stringify(arrayOfObjects);
