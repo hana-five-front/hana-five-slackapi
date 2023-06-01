@@ -1,7 +1,6 @@
-
 require('dotenv').config();
-const {createClient} = require('redis')
-const redis = require('redis')
+const { createClient } = require('redis');
+const redis = require('redis');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -66,75 +65,73 @@ async function getConversationHistory() {
 }
 app.get('/slackapi', async (req, res) => {
   await connectToRedis()
-    .then( async () => {
+    .then(async () => {
       const client = createClient({
         password: process.env.REDIS_PASSWORD,
         socket: {
-            host: process.env.REDIS_HOST,
-            port: 16537
-        }
-    });
-      let response = await client.connect().then(async()=>{
-        return await client.get('slackApi') 
-      })
-   
-       res.status(200).json(response)
-      }
-    )
+          host: process.env.REDIS_HOST,
+          port: 10536,
+        },
+      });
+      let response = await client.connect().then(async () => {
+        return await client.get('slackApi');
+      });
+      await client.quit();
+      res.status(200).json(response);
+    })
     .catch(error => {
       console.log(error);
     });
 });
 async function connectToRedis() {
-
   const client = createClient({
     password: process.env.REDIS_PASSWORD,
     socket: {
-        host: process.env.REDIS_HOST,
-        port: 16537
-    }
-});
-let connected = false; // 연결 여부를 확인하는 플래그 변수
+      host: process.env.REDIS_HOST,
+      port: 10536,
+    },
+  });
+  let connected = false; // 연결 여부를 확인하는 플래그 변수
 
-setInterval(async () => {
-  if (!connected) {
-    try {
-      await client.connect();
-      connected = true;
-      const slackApiNoticeData = await getConversationHistory();
-      console.log(slackApiNoticeData);
-      await addArrayOfObjectsToRedis("slackApi", slackApiNoticeData);
-      console.log(await client.get("slackApi"));
-    } catch (error) {
-      console.error("Error connecting to Redis:", error);
-    } finally {
-      client.quit();
-      connected = false;
+  setInterval(async () => {
+    if (!connected) {
+      try {
+        await client.connect();
+        connected = true;
+        const slackApiNoticeData = await getConversationHistory();
+        console.log(slackApiNoticeData);
+        await addArrayOfObjectsToRedis('slackApi', slackApiNoticeData);
+        console.log(await client.get('slackApi'));
+      } catch (error) {
+        console.error('Error connecting to Redis:', error);
+      } finally {
+        client.quit();
+        connected = false;
+      }
     }
-  }
-}, 3600000);
-  
+  }, 1800000);
+
   async function addArrayOfObjectsToRedis(key, arrayOfObjects) {
     const serializedArray = JSON.stringify(arrayOfObjects);
     await client.set(key, serializedArray, (error, result) => {
       if (error) {
-        console.error('Redis에 객체로 된 배열 추가 중 에러가 발생했습니다.', error);
+        console.error(
+          'Redis에 객체로 된 배열 추가 중 에러가 발생했습니다.',
+          error
+        );
       } else {
         console.log('객체로 된 배열이 Redis에 추가되었습니다.');
       }
     });
   }
-
-
 }
 
 // async 함수 호출
 connectToRedis()
-  .then(async() => {
+  .then(async () => {
     console.log('Redis 서버에 연결되었습니다.');
-
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('Redis 연결 중 에러가 발생했습니다.', error);
   });
 
@@ -177,7 +174,7 @@ app.post('/qna', (req, res) => {
   const text = req.body.text;
   sendQnaMessageToSlack(text);
 });
-app.get('/qna', (req,res) => {
+app.get('/qna', (req, res) => {
   const slackToken = process.env.SLACK_TOKEN;
   const client = new WebClient(slackToken);
   // 대화 내역을 가져오기 위해 API 요청을 만듭니다.
@@ -215,14 +212,16 @@ app.get('/qna', (req,res) => {
   }
   getConversationHistory()
     .then(response => {
-      console.log(response)
+      console.log(response);
       res.status(200).json(response);
     })
     .catch(error => {
       console.log(error);
     });
-})
-app.get('/header',(req,res)=> res.status(200).json({"header":process.env.HEADER}))
+});
+app.get('/header', (req, res) =>
+  res.status(200).json({ header: process.env.HEADER })
+);
 const PORT = process.env.PORT;
 const start = async () => {
   try {
