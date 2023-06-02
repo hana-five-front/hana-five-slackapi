@@ -6,7 +6,7 @@ const socket_server = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   socketMode: true,
-  appToken: process.env.SLACK_APP_TOKEN
+  appToken: process.env.SLACK_APP_TOKEN,
 });
 
 function sendDataToClient(data) {
@@ -18,18 +18,18 @@ socket_server.message('hello', async ({ message, say }) => {
 });
 
 const server = http.createServer();
-const io = require("socket.io")(server, {
+const io = require('socket.io')(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
 });
 
-io.on('connection', async (socket) => {
+io.on('connection', async socket => {
   console.log('Client connected');
 
   // 채널의 메시지 가져오기
-  const channelId = process.env.SOCKET_CHANNEL // 실제 채널 ID로 대체해야 합니다.
+  const channelId = process.env.SOCKET_CHANNEL; // 실제 채널 ID로 대체해야 합니다.
   await fetchChannelHistory(channelId);
 
   socket.on('disconnect', () => {
@@ -42,17 +42,17 @@ async function fetchChannelHistory(channelId) {
   try {
     const response = await socket_server.client.conversations.history({
       channel: channelId,
-      limit: 100
+      limit: 100,
     });
-    
-    response.messages.forEach(message => {
-      let lines = message.text.split('\n');
+    for (let i = response.messages.length - 1; i >= 0; i--) {
+      
+      let lines = response.messages[i].text.split('\n');
       const element = {
-        text: lines[0],
-        content: lines.slice(1)
+        title: lines[0],
+        content: lines.slice(1),
       };
       data.push(element);
-    });
+    }
     sendDataToClient(data);
   } catch (error) {
     console.error('Error fetching channel history:', error);
