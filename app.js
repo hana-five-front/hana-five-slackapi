@@ -13,7 +13,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 async function getUserName(userId) {
-  const slackToken = process.env.SLACK_TOKEN;
+  const slackToken = process.env.SLACK_NOTICE_TOKEN;
   const client = new WebClient(slackToken);
   try {
     const userInfo = await client.users.info({ user: userId });
@@ -23,9 +23,9 @@ async function getUserName(userId) {
   }
 }
 async function getConversationHistory() {
-  const slackToken = process.env.SLACK_TOKEN;
+  const slackToken = process.env.SLACK_NOTICE_TOKEN;
   const client = new WebClient(slackToken);
-  const channel = process.env.CHANNEL;
+  const channel = process.env.SLACK_NOTICE_CHANNEL;
   try {
     const limit = 1; // 가져올 메시지의 수 제한
     let data = [];
@@ -64,7 +64,7 @@ async function getConversationHistory() {
   }
 }
 app.get('/slackapi', async (req, res) => {
-  try{
+  try {
     const client = createClient({
       password: process.env.REDIS_PASSWORD,
       socket: {
@@ -77,9 +77,10 @@ app.get('/slackapi', async (req, res) => {
     });
     await client.quit();
     res.status(200).json(response);
-  } catch(error){
-      console.log(error);
- }});
+  } catch (error) {
+    console.log(error);
+  }
+});
 async function connectToRedis() {
   const client = createClient({
     password: process.env.REDIS_PASSWORD,
@@ -133,12 +134,12 @@ connectToRedis()
   });
 
 // WebClient 인스턴스 생성
-const slackClient = new WebClient(process.env.SLACK_TOKEN);
+const slackClient = new WebClient(process.env.SLACK_NOTICE_TOKEN);
 // Slack에 메시지 보내는 함수
 async function sendMessageToSlack(text) {
   try {
     const result = await slackClient.chat.postMessage({
-      channel: process.env.CHANNEL,
+      channel: process.env.SLACK_NOTICE_CHANNEL,
       text: text,
     });
 
@@ -152,7 +153,7 @@ async function sendMessageToSlack(text) {
 async function sendQnaMessageToSlack(text) {
   try {
     const result = await slackClient.chat.postMessage({
-      channel: process.env.QNA_CHANNEL,
+      channel: process.env.SLACK_QNA_CHANNEL,
       text: text,
     });
 
@@ -172,10 +173,10 @@ app.post('/qna', (req, res) => {
   sendQnaMessageToSlack(text);
 });
 app.get('/qna', (req, res) => {
-  const slackToken = process.env.SLACK_TOKEN;
+  const slackToken = process.env.SLACK_QNA_TOKEN;
   const client = new WebClient(slackToken);
   // 대화 내역을 가져오기 위해 API 요청을 만듭니다.
-  const channel = process.env.QNA_CHANNEL;
+  const channel = process.env.SLACK_QNA_CHANNEL;
 
   async function getUserName(userId) {
     try {
